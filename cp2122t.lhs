@@ -151,15 +151,15 @@
 
 \begin{center}\large
 \begin{tabular}{ll}
-\textbf{Grupo} nr. & 99 (preencher)
+\textbf{Grupo} nr. 36
 \\\hline
-a11111 & Nome1 (preencher)
+96059 & Hugo Costa
 \\
-a22222 & Nome2 (preencher)
+90072 & Marco Martins
 \\
-a33333 & Nome3 (preencher)
+97610 & Nuno Costa
 \\
-a44444 & Nome4 (preencher, se aplicável, ou apagar)
+92999 & Sara Fontes
 \end{tabular}
 \end{center}
 
@@ -887,71 +887,309 @@ simples e elegantes.
 
 \subsection*{Problema 1} \label{pg:P1}
 
-Apresentar cálculos aqui, se desejável acompanhados de diagramas, etc.
+\begin{eqnarray*}
 
+     \left\{
+        \begin{array}{ll}
+             |(either (q d (const 0)) (q d succ)) = (either (f1 . id) (f2 .(split (q d) (split (r d) (c d)))))|\\
+             |(split (either (r d (const 0)) (r d succ)) (either (c d (const 0)) (c d succ))) = ((split (either (g1 . id) (g2 . (split (q d) (split (r d) (c d))))) (either (h1 . id) (h2 . (split (q d) (split (r d) (c d)))))))|\\
+        \end{array}
+     \right.
+     \just\equiv{(1),(16)}
+%
+
+     \left\{
+        \begin{array}{lll}
+             |(either (q d (const 0)) (q d succ)) = (either (f1) (f2 .(split (q d) (split (r d) (c d)))))|\\
+             |(either (r d (const 0)) (r d succ)) = (either (g1) (g2 . (split (q d) (split (r d) (c d)))))|\\
+             |(either (c d (const 0)) (c d succ)) =(either (h1) (h2 . (split (q d) (split (r d) (c d))))) |\\
+        \end{array}
+     \right.
+     \just\equiv{(27)}
+%
+
+     \left\{
+        \begin{array}{llllll}
+             |q d (const 0)  = f1|\\
+             |q d succ = f2 .(split (q d) (split (r d) (c d)))|\\
+             |r d (const 0) = g1|\\
+             |r d succ  = (g2 . (split (q d) (split (r d) (c d))))|\\
+             |c d (const 0) = h1 |\\
+             |c d succ = h2 . (split (q d) (split (r d) (c d)))|\\
+        \end{array}
+     \right.
+     \just\equiv{(71),(72)}
+%
+     \left\{
+        \begin{array}{llllll}
+             |q d (const 0)  = f1|\\
+             |q d (x,(y,z)) = cond (z==0) (succ . p1) (p1)|\\
+             |r d (const 0) = g1|\\
+             |r d (x,(y,z))  = cond (z==0) (const 0) (succ . p1 . p2)|\\
+             |c d (const 0) =h1 |\\
+             |c d (x,(y,z)) = cond (z==0) (const d) (pred . p2 . p2)|\\
+        \end{array}
+     \right.
+     \just\equiv{(71)}
+%
+     \left\{
+	\begin{array}{llllll}
+  	     |q d (const 0)  = f1|\\
+	     |q d = cond ((==0) . p2 . p2) (succ . p1) (p1)|\\
+	     |r d (const 0) = g1|\\
+	     |r d  = cond ((==0) . p2 . p2) (const 0) (succ . p1 . p2)|\\
+      	     |c d (const 0) = h1 |\\
+	     |c d = cond ((==0) . p2 . p2) (const d) (pred . p2 . p2)|\\
+        \end{array}
+     \right.
+     \just\equiv{def aux}
+%
+		 |split (q d) (split (r d) (c d))| 
+     \just\equiv{Pela Recursividade Mútua}
+%
+
+     |cata (split (either f1 f2) (split (either g1 g2) (either h1 h2)))|
+     \just\equiv{Substituição f1, g1, h1}
+%
+
+     |cata (split (either (const 0) f2) (split (either (const 0) g2) (either (const d) h2)))|
+     \just\equiv{Transformação em for loop conforme visto na aula teórica}
+%
+
+     |cata (either ((const 0, (const 0, const d))) (split f2 (split g2 h2))|
+
+%
+     \just\equiv{}
+%
+
+     |for g d ((0,(0,d))) where g d ((x,(y,z))) = ((f2,(g2,h2)))|
+     \just\equiv{}
+%
+
+     |for g d ((0,(0,d))) where|
+     \just\equiv{}
+%
+
+     |g d ((q,(r,0))) = ((q+1,(0,d)))|
+     |g d ((q,(r,c+1))) = ((q,(r+1,c)))|
+\end{eqnarray*}
 \subsection*{Problema 2}
 
 \begin{code}
+
 alice :: Ord c => LTree c -> c
-alice = undefined
+alice (Leaf x) = x
+alice (Fork(x,y)) = umax(alice(x),alice(y))
+
+umin :: Ord a => (a,a) -> a
+umin = uncurry min
 
 bob :: Ord c => LTree c -> c
-bob   = undefined    
+bob (Leaf x) = x
+bob (Fork(x,y)) = umin(bob(x),bob(y))
 
 both :: Ord d => LTree d -> (d, d)
-both = undefined
+both = split alice bob
+
 \end{code}
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |LTree a|
+           \ar[d]_-{|both|}
+           \ar[r]_-{|out|}
+&
+    |A + LTree A|^{2}
+           \ar[d]^{|id + both|^{2}}
+\\
+     |B >< C|
+&
+     |A + (B >< C)|^{2}
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+\begin{eqnarray*}
+\start
+    \left\{
+        \begin{array}{lll}
+            |alice(Leaf x) = x|\\
+            |alice(Fork(x,y))= umax(alice(x),alice(y))|\\
+            |bob(Leaf x) = x|\\
+            |bob(Fork(x,y)) = umin(bob(x),bob(y))|
+        \end{array}
+    \right.
+    \just\equiv{ (20),(27),(71) }
+%    
+    \left\{
+        \begin{array}{lll}
+            |alice.either Fork Leaf  = either id (umax(alice(X),alice(Y)))|\\
+            |bob. either Leaf Fork = either id (umin(bob(X),bob(Y)))|
+        \end{array}
+    \right.
+    \just\equiv{ (1),(20), def.in }
+%
+    \left\{
+        \begin{array}{lll}
+            |alice.in = either id id .(id + umax(alice(X),alice(Y)))|\\
+            |bob . in = either id id . (id + umin(bob(X),bob(Y)))|
+        \end{array}
+    \right.
+    \just\equiv{ }
+%
+    \left\{
+        \begin{array}{lll}
+            |alice.in = either id id .F p1. F (split alice bob)|\\
+            |bob . in = either id id . F p2 . F (split alice bob)|
+        \end{array}
+    \right.
+    \just\equiv{ (52) }
+%    
+    |split alice bob = cata( split (either id id . F p1) (either id id . F p2))|
 
 \subsection*{Problema 3}
+
 Biblioteca |LTree3|:
 
 \begin{code}
-inLTree3 = undefined
 
-outLTree3 (Tri t) = undefined
-outLTree3 (Nodo a b c) =  undefined
 
-baseLTree3 f g = undefined
+inLTree3 = either Tri (uncurry (uncurry Nodo))
 
-recLTree3 f = undefined
+outLTree3 (Tri a) = i1 a
+outLTree3 (Nodo t1 t2 t3) = i2 ((t1, t2), t3)
 
-cataLTree3 f = undefined
+baseLTree3 g f = g -|- ((f >< f) >< f)
 
-anaLTree3 f = undefined
+recLTree3 f = baseLTree3 id f
 
-hyloLTree3 f g = undefined
+cataLTree3 g = g . (recLTree3 (cataLTree3 g)) . outLTree3
+
+anaLTree3 f = inLTree3 . (recLTree3 (anaLTree3 f) ) . f
+
+hyloLTree3 f g = cataLTree3 f . anaLTree3 g
+
+
+
 \end{code}
+
+
 Genes do hilomorfismo |sierpinski|:
-\begin{code}
-g1 = undefined
+\\
+\\\\\	Diagrama de Catamorfismo:
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |LTree Tri|
+           \ar[d]_-{|folhasSierp|}
+           \ar@@/^/[r]^-{|outT|}_-\cong
+&
+    |Tri + (Ltree3 Tri >< LTree3 Tri) >< LTree3 Tri|
+           \ar[d]^{|id + (folhasSierp >< folhasSierp) >< folhasSierp|}
+           \ar@@/^/[l]^-{|inT|}
+\\
+     |[Int]|
+&
+     |Tri + (Tri|^*| >< Tri|^*|) >< Tri|^{*}
+           \ar[l]^-{|g1|}
+}
+\end{eqnarray*}
 
-g2 (t,0) = undefined
-g2 (((x,y),s),n+1) = i2((t1,t2),t3) where
-     t1 = undefined
-     t2 = undefined
-     t3 = undefined
+
+\\\\\\	Diagrama de Anamorfismo:
+	
+\xymatrix@@C=2cm{
+    |LTree Tri|
+           \ar@@/^/[r]^-{|outT|}_-\cong
+&
+    |Tri + (Ltree3 Tri >< LTree3 Tri) >< LTree3 Tri|
+           \ar@@/^/[l]^-{|inT|}
+\\
+     |Tri >< Int|
+           \ar[u]^-{|geraSierp|}
+           \ar[r]^-{|g2|}
+&
+     |Tri + ((Tri><Int) >< (Tri><Int)) >< (Tri><Int)|
+           \ar[u]_-{|id + (geraSierp >< geraSierp) >< geraSierp|}
+}
+\end{eqnarray*}
+
+\begin{code}
+g1 =either singl (uncurry ( (++) . (conc) ))
+
+g2 (t,0) = i1 (t)
+g2 (((x,y),s), n+1) = i2 (((t1,t2),t3)) where
+    t1 = (((x,y), div s 2), n)
+    t2 = (((x + div s 2, y), div s 2), n)
+    t3 = (((x, y + div s 2), div s 2), n)
 \end{code}
+
+\begin{figure}[htb]
+    \begin{center}
+         \includegraphics[width=0.4\textwidth]{cp2122t_media/figura4.png}
+    \end{center}
+    \caption{Um triângulo de Sierpinski com profundidade |3|.}
+    \label{fig:sierp1}
+\end{figure}
 
 \subsection*{Problema 4}
 
+\\\\\	 Diagrama propagate
+
+\begin{eqnarray*}
+
+\xymatrix@@C=2cm{
+    |A|^{*}
+           \ar[d]_-{|propagate|}
+           \ar@@/^/[r]^-{|outT|}_-\cong
+&
+    |1 + A + A|^{*}
+           \ar[d]^{|id + id >< propagate|}
+           \ar@@/^/[l]^-{|inT|}
+\\
+     |TB|^{*}
+&
+     |1 + A >< TB|^{*}
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+
+\\\\\	Diagrama propagate3
+
+\begin{eqnarray*}
+
+\xymatrix@@C=2cm{
+    |Nat0|^{*}
+           \ar[d]_-{|propagate3|}
+           \ar@@/^/[r]^-{|outT|}_-\cong
+&
+    |1 + Nat0 + Nat0|^{*}
+           \ar[d]^{|id + id >< propagate3|}
+           \ar@@/^/[l]^-{|inT|}
+\\
+     |T Nat0|^{*}
+&
+     |1 + Nat0 >< T Nat0|^{*}
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+	
 \begin{code}
 propagate :: Monad m => (t -> m a) -> [t] -> m [a]
 propagate f = cataList (g f) where
-   g f = either undefined (g2 f)
-   g2 f (a,b) = undefined
+     g f = either (return . nil) (g2 f)
+     g2 f (a,b) =  do { a1 <- (f a) ; x <- b ; return (a1:x) }
 \end{code}
 
 \begin{code}
 propagate3 :: (Monad m) => (Bit3 -> m Bit3) -> [Bit] -> m [Bit]
 propagate3 f = cataList (g f) where
-   g f = either undefined (g2 f)
-   g2 f (a,b) = undefined
+   g f = either (return . nil) (g2 f)
+   g2 f (a,b) = do {a1 <- (bitToBit3 f a) ; x <- b ; return (a1:x) }
+bitToBit3 f a = do { x <- f (a,a,a) ; return (v3 x) }
 \end{code}
 A função |bflip3|, a programar a seguir, deverá estender |bflip| aos três bits da entrada:
 
 \begin{code}
 bflip3 :: Bit3 -> Dist Bit3
-bflip3(a,b,c) = do { undefined } 
+bflip3(a,b,c) = do { a1 <- bflip a ; b1 <- bflip b; c1 <- bflip c; return (a1,b1,c1) } 
 
 \end{code}
 
